@@ -1,0 +1,10 @@
+{
+  "files": [],
+  "include": [],
+  "references": [
+    { "path": "./packages/bhp-core" },
+    { "path": "./packages/bhp-api" },
+    { "path": "./packages/bhp-brc5" },
+    { "path": "./packages/bhp-js" }
+  ]
+}

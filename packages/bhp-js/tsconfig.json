@@ -1,0 +1,13 @@
+{
+  "extends": "../../tsconfig-base.json",
+  "compilerOptions": {
+    "rootDir": "src",
+    "outDir": "lib"
+  },
+  "references": [
+    { "path": "../bhp-core" },
+    { "path": "../bhp-api" },
+    { "path": "../bhp-brc5" }
+  ],
+  "include": ["src/**/*"]
+}

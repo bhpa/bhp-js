@@ -1,0 +1,40 @@
+{
+  "name": "@bhp/bhp-brc5",
+  "description": "Bhp-Brc5 Module",
+  "version": "1.0.0",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/BhpDevGroup/bhp-js.git"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "keywords": [
+    "bhp",
+    "antshares",
+    "javascript",
+    "libraries"
+  ],
+  "author": "bhpalpha <bhp-project@hotmail.com> (https://github.com/bhpalpha)",
+  "license": "MIT",
+  "main": "dist/index.js",
+  "module": "lib/index.js",
+  "types": "lib/index.d.ts",
+  "scripts": {
+    "build": "tsc -b",
+    "dist:prod": "tsc -m commonjs --outDir dist",
+    "clean": "rimraf ./lib ./dist tsconfig.tsbuildinfo",
+    "prepublishOnly": "yarn clean && yarn build && yarn dist:prod",
+    "lint": "eslint src/**/*.ts __tests__/**/*.ts __integration__/**/*.ts",
+    "pretty": "prettier --write --loglevel=warn \"./{src,__{tests,integration}__}/**/*.ts\"",
+    "start": "jest --watch",
+    "test": "jest",
+    "test:integration": "jest /packages/.*/__integration__/.*",
+    "test:unit": "jest /packages/.*/__tests__/.*"
+  },
+  "files": [
+    "dist/",
+    "lib/"
+  ],
+  "gitHead": "321e0babdd15122c4d6d0f871e923277daff88d8"
+}

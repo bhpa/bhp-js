@@ -1,0 +1,39 @@
+{
+  "name": "@bhp/bhp-js",
+  "description": "Bhp-JS SDK for interacting with BHP blockchain",
+  "version": "1.0.0",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/BhpDevGroup/bhp-js.git"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "keywords": [
+    "bhp",
+    "antshares",
+    "javascript",
+    "libraries"
+  ],
+  "author": "bhpalpha <bhp-project@hotmail.com> (https://github.com/bhpalpha)",
+  "license": "MIT",
+  "main": "dist/index.js",
+  "browser": "dist/browser.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc -b",
+    "clean": "rimraf ./lib ./dist tsconfig.tsbuildinfo",
+    "dist": "cross-env NODE_ENV=development webpack --mode development",
+    "dist:prod": "cross-env NODE_ENV=production webpack --mode production",
+    "prepublishOnly": "yarn clean && yarn build && yarn dist:prod",
+    "lint": "eslint src/**/*.ts __tests__/**/*.ts __integration__/**/*.ts",
+    "pretty": "prettier --write --loglevel=warn \"./{src,__{tests,integration}__}/**/*.ts\""
+  },
+  "files": [
+    "dist/"
+  ],
+  "gitHead": "321e0babdd15122c4d6d0f871e923277daff88d8",
+  "devDependencies": {
+    "webpack-cli": "^3.3.6"
+  }
+}
