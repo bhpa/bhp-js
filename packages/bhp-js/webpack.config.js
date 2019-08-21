@@ -18,7 +18,7 @@ module.exports = function() {
     target: "web",
     output: {
       path: path.resolve(__dirname, "dist"),
-      filename: "browser.js",
+      filename: "bhp-browser.js",
       libraryTarget: "umd",
       library: "Bhp" // This is the var name in browser
     }
