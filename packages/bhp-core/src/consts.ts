@@ -79,7 +79,7 @@ export const BRC_HEADER = "0142";
 
 export const BRC_FLAG = "e0";
 
-export const RPC_VERSION = "2.3.2";
+export const RPC_VERSION = "1.0.0";
 
 export const TX_VERSION: { [key: string]: number } = {
   CLAIM: 0,
