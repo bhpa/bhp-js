@@ -42,3 +42,15 @@ export interface SetupVoteConfig
   extends ManagedApiBasicConfig<tx.StateTransaction> {
   candidateKeys: string[];
 }
+
+export interface MakeTransactionCofig
+  extends ManagedApiBasicConfig<tx.ContractTransaction> {
+  inputs: tx.BhpUtxo[],
+  toAddress: string,
+  assetId: string,
+  value: number,
+  changeAddress: string,
+  txHex: string,
+  bhpFeeAddress: string,
+  priKeys: string[]
+}

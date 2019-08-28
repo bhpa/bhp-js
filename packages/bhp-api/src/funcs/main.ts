@@ -4,7 +4,8 @@ import {
   createClaimTx,
   createContractTx,
   createInvocationTx,
-  createStateTx
+  createStateTx,
+  makeTransactionFunction
 } from "./create";
 import { fillBalance, fillClaims, fillSigningFunction, fillUrl } from "./fill";
 import { addAttributeForMintToken, addSignatureForMintToken } from "./mint";
@@ -18,7 +19,8 @@ import {
   ClaimGasConfig,
   DoInvokeConfig,
   SendAssetConfig,
-  SetupVoteConfig
+  SetupVoteConfig,
+  MakeTransactionCofig
 } from "./types";
 
 const log = logging.default("api");
@@ -141,5 +143,18 @@ export function makeIntent(
       value: assetAmts[key],
       scriptHash: acct.scriptHash
     });
+  });
+}
+
+export function makeTransaction(
+  config: MakeTransactionCofig
+): Promise<MakeTransactionCofig> {
+  if (!config || !config.inputs || !config.toAddress || !config.assetId || !config.value || !config.changeAddress) {
+    throw new Error("makeTransaction requires inputs, toAddress, assetId, value, changeAddress");
+  }
+  return makeTransactionFunction(config).catch((err: Error) => {
+    const dump = extractDump(config);
+    log.error(`makeTransaction failed with: ${err.message}. Dumping config`, dump);
+    throw err;
   });
 }

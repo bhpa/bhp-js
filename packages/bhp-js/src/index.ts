@@ -101,6 +101,7 @@ export default {
   claimGas: api.claimGas,
   doInvoke: api.doInvoke,
   setupVote: api.setupVote,
+  makeTransaction: api.makeTransaction,
   create,
   deserialize,
   is,

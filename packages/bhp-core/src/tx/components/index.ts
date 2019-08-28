@@ -3,3 +3,4 @@ export * from "./TransactionInput";
 export * from "./TransactionOutput";
 export * from "./Witness";
 export * from "./StateDescriptor";
+export * from "./BhpUtxo";

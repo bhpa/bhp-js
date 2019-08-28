@@ -1,22 +1,74 @@
 <!DOCTYPE html>
 <html>
+
 <head>
-<meta charset="utf-8">
-<title>bhpjs</title>
-<script src="./packages/bhp-js/dist/bhp-browser.js"></script>
+	<meta charset="utf-8">
+	<title>bhpjs</title>
+	<script src="./packages/bhp-js/dist/bhp-browser.js"></script>
 </head>
+
 <body>
 
-<h1>bhp js test</h1>
+	<h1>bhp js test</h1>
 
-<script>
-    console.log(Bhp);
-	const account = new Bhp.wallet.Account("910183411298293648578c14f4d34bf8ba5ff03e28a026b3eb0a744f589b05d3");
-	console.log(account);
+	<script>
+		console.log(Bhp);
+		//const
+		const bhpAssetId = "13f76fabfe19f3ec7fd54d63179a156bafc44afc53a7f07a7a15f6724c0aa854";
+		const tokenAssetId = "b28927a741fdd4c65c99ef661d5ce88d2fedb8dfed95e7da690e1a213bd267f0";
 
-	var signature = Bhp.wallet.sign("8000000115226a71a6a3c15ffc105ed4bc113e6186c9c9e0905feae155bd403d425362a701000254a80a4c72f6157a7af0a753fc4ac4af6b159a17634dd57fecf319feab6ff713204e0000000000008226c513e2aa717f2f32d3c5fb2bcb492acfc3dc54a80a4c72f6157a7af0a753fc4ac4af6b159a17634dd57fecf319feab6ff7139f47de11000000008226c513e2aa717f2f32d3c5fb2bcb492acfc3dc","910183411298293648578c14f4d34bf8ba5ff03e28a026b3eb0a744f589b05d3");
-	console.log(signature);
-</script>
+		//创建账户
+		const prikey = "910183411298293648578c14f4d34bf8ba5ff03e28a026b3eb0a744f589b05d3";
+		const address = "AL2Eo2B1bWRSjizgRsFWoUShAYvv4NMiFq";
+		var account = new Bhp.wallet.Account(prikey);
+		console.log(account);
+
+		//私钥签名
+		const hexStr = "8000000115226a71a6a3c15ffc105ed4bc113e6186c9c9e0905feae155bd403d425362a701000254a80a4c72f6157a7af0a753fc4ac4af6b159a17634dd57fecf319feab6ff713204e0000000000008226c513e2aa717f2f32d3c5fb2bcb492acfc3dc54a80a4c72f6157a7af0a753fc4ac4af6b159a17634dd57fecf319feab6ff7139f47de11000000008226c513e2aa717f2f32d3c5fb2bcb492acfc3dc";
+		var signature = Bhp.wallet.sign(hexStr, prikey);
+		console.log(signature);
+
+		//构造交易
+		const input = {
+			prevHash: "6a9d19b9a960d809759c0823c19f32245b38ea18f6783c595f8567010f14b188",
+			prevIndex: 0,
+			assetId: tokenAssetId,
+			value: 0.1,
+			scriptHash: address
+		};
+
+		const feeinput = {
+			prevHash: "a4322976ae39c60cdf48129327cf98b9749faf4eb0e70ce3872dc974f2eee74c",
+			prevIndex: 0,
+			assetId: bhpAssetId,
+			value: 0.0002,
+			scriptHash: address
+		};
+
+		var inputs = [];
+		inputs.push(input);
+		inputs.push(feeinput);
+		var config = {
+			inputs: inputs,
+			assetId: tokenAssetId,
+			toAddress: address,
+			value: 0.1,
+			changeAddress: address,
+			bhpFeeAddress: address
+		}
+
+		config.priKeys = [prikey];
+		Bhp.api.makeTransaction(config)
+			.then(config => {
+				console.log("\n\n--- Response ---");
+				console.log(config);
+			})
+			.catch(config => {
+				console.log(config);
+			});
+			
+	</script>
 
 </body>
+
 </html>
