@@ -1,10 +1,11 @@
-import { sc, tx, u, wallet } from "../../../bhp-core/lib";
+import { sc, tx, u, wallet, CONST } from "../../../bhp-core/lib";
 import { checkProperty } from "./common";
 import {
   ClaimGasConfig,
   DoInvokeConfig,
   SendAssetConfig,
-  SetupVoteConfig
+  SetupVoteConfig,
+  MakeTransactionCofig
 } from "./types";
 
 export async function createClaimTx(
@@ -66,5 +67,161 @@ export async function createStateTx(
     })
   ];
   config.tx = new tx.StateTransaction({ descriptors });
+  return config;
+}
+
+export async function makeTransactionFunction(
+  config: MakeTransactionCofig
+): Promise<MakeTransactionCofig> {
+  let txs: tx.ContractTransaction = new tx.ContractTransaction();
+  txs = MakeTx(config, txs);
+  txs = EstimateFee(config, txs);
+  config.tx = txs;
+  config.txHex = config.tx!.serialize(false);
+
+  return signTxBhp(config, txs);
+}
+
+function MakeTx(
+  config: MakeTransactionCofig,
+  txs: tx.ContractTransaction
+): tx.ContractTransaction {
+  let assetUtxos: Array<tx.BhpUtxo> = new Array<tx.BhpUtxo>();
+  let assetUtxosSum: number = 0;
+
+  assetUtxos = findAssetUtxos(config, config.assetId);
+  assetUtxos.forEach(p => { assetUtxosSum += p.value; });
+  if (assetUtxosSum < config.value) {
+    throw new Error(`makeTransactionFunction: ${config.assetId} utxo is not enough`);
+  }
+
+  let fee: number = 0;
+  if (config.assetId == CONST.ASSET_ID["BHP"]) {
+    if (assetUtxosSum == config.value) {
+      throw new Error("makeTransactionFunction: txfee is not enough");
+    }
+    fee = CONST.Min_Tx_Fee;
+  }
+
+  let allValue = config.value + fee;
+  let txCoins: Array<tx.BhpUtxo> = new Array<tx.BhpUtxo>();
+  let txCoinsSum: number = 0;
+  let i: number = 0;
+  while (assetUtxos[i].value < allValue) {
+    allValue -= assetUtxos[i].value;
+    txCoins.push(assetUtxos[i]);
+    i++;
+  }
+  if (allValue > 0) {
+    txCoins.push(assetUtxos[i]);
+  }
+
+  txCoins.forEach(p => {
+    txCoinsSum += p.value;
+    txs.inputs.push(new tx.TransactionInput({
+      prevHash: p.prevHash,
+      prevIndex: p.prevIndex
+    }));
+  });
+
+  txs.outputs.push(new tx.TransactionOutput({
+    assetId: config.assetId,
+    value: config.value,
+    scriptHash: wallet.getScriptHashFromAddress(config.toAddress)
+  }));
+
+  if (txCoinsSum > (config.value + fee)) {
+    txs.outputs.push(new tx.TransactionOutput({
+      assetId: config.assetId,
+      value: txCoinsSum - config.value - fee,
+      scriptHash: wallet.getScriptHashFromAddress(config.changeAddress)
+    }));
+  }
+  return txs;
+}
+
+function findAssetUtxos(
+  config: MakeTransactionCofig,
+  assetId: string
+): tx.BhpUtxo[] {
+  let assetUtxos: Array<tx.BhpUtxo> = new Array<tx.BhpUtxo>();
+  config.inputs.forEach(p => {
+    if (p.assetId == assetId) {
+      assetUtxos.push(p);
+    }
+  });
+  assetUtxos = assetUtxos.sort((a, b) => a.value - b.value);
+  return assetUtxos;
+}
+
+function EstimateFee
+  (
+    config: MakeTransactionCofig,
+    txs: tx.ContractTransaction
+  ): tx.ContractTransaction {
+  if (CONST.IS_BHP_FEE && config.assetId != CONST.ASSET_ID["BHP"] && config.assetId != CONST.ASSET_ID["GAS"]) {
+    let fee: number = CONST.Min_Tx_Fee;
+    let assetUtxos: Array<tx.BhpUtxo> = new Array<tx.BhpUtxo>();
+    let assetUtxosSum: number = 0;
+    assetUtxos = findAssetUtxos(config, CONST.ASSET_ID["BHP"]);
+    assetUtxos.forEach(p => { assetUtxosSum += p.value; });
+    if (assetUtxosSum < fee) {
+      throw new Error("makeTransactionFunction: txfee is not enough")
+    }
+
+    if (assetUtxosSum == fee) {
+      assetUtxos.forEach(p => {
+        txs.inputs.push(new tx.TransactionInput({
+          prevHash: p.prevHash,
+          prevIndex: p.prevIndex
+        }));
+      });
+    }
+    else {
+      if (!config.bhpFeeAddress) {
+        throw new Error("makeTransaction need bhpFeeAddress");
+      }
+      let txCoins: Array<tx.BhpUtxo> = new Array<tx.BhpUtxo>();
+      let i: number = 0;
+      let txCoinsSum: number = 0;
+      let allValue = fee;
+      while (assetUtxos[i].value < allValue) {
+        allValue -= assetUtxos[i].value;
+        txCoins.push(assetUtxos[i]);
+        i++;
+      }
+      if (allValue > 0) {
+        txCoins.push(assetUtxos[i]);
+      }
+      txCoins.forEach(p => {
+        txCoinsSum += p.value;
+        txs.inputs.push(new tx.TransactionInput({
+          prevHash: p.prevHash,
+          prevIndex: p.prevIndex
+        }));
+      });
+      txs.outputs.push(new tx.TransactionOutput({
+        assetId: CONST.ASSET_ID["BHP"],
+        value: txCoinsSum - fee,
+        scriptHash: wallet.getScriptHashFromAddress(config.bhpFeeAddress)
+      }));
+    }
+  }
+  return txs;
+}
+
+async function signTxBhp(
+  config: MakeTransactionCofig,
+  txs: tx.ContractTransaction
+): Promise<MakeTransactionCofig> {
+  if (config.priKeys && config.priKeys.length != 0) {
+    config.priKeys.forEach(p => {
+      const pubKey = new wallet.Account(p).publicKey;
+      const sig = wallet.sign(config.txHex, p);
+      txs.addWitness(tx.Witness.fromSignature(sig, pubKey));
+    });
+    config.tx = txs;
+    config.txHex = config.tx!.serialize(true);
+  }
   return config;
 }

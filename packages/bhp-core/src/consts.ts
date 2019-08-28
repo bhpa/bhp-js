@@ -92,3 +92,6 @@ export const TX_VERSION: { [key: string]: number } = {
   PUBLISH: 0,
   REGISTER: 0
 };
+
+export const IS_BHP_FEE = false;
+export const Min_Tx_Fee = 0.0001;
