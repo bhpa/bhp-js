@@ -40,3 +40,22 @@ export function signWithPrivateKey(
     return witness.serialize();
   };
 }
+
+/**
+ * Signs a transaction within the config object.
+ * @param config - Configuration object.
+ * @param priKeys - private keys.
+ * @return tx hex string.
+ */
+export function signTxByPriKey(
+  config: tx.ContractTransaction,
+  priKeys: string[]
+): string {  
+  let txHex: string = config!.serialize(false);
+  priKeys.forEach(p => {
+    const pubKey = new wallet.Account(p).publicKey;
+    const sig = wallet.sign(txHex, p);
+    config.addWitness(tx.Witness.fromSignature(sig, pubKey));
+  });
+  return config!.serialize(true);
+}
