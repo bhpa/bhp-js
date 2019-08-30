@@ -14,59 +14,118 @@
 	<script>
 		console.log(Bhp);
 		//const
-		const bhpAssetId = "13f76fabfe19f3ec7fd54d63179a156bafc44afc53a7f07a7a15f6724c0aa854";
-		const tokenAssetId = "b28927a741fdd4c65c99ef661d5ce88d2fedb8dfed95e7da690e1a213bd267f0";
+		const bhpAssetId = "13f76fabfe19f3ec7fd54d63179a156bafc44afc53a7f07a7a15f6724c0aa854";//BHP资产ID
+		const tokenAssetId = "b28927a741fdd4c65c99ef661d5ce88d2fedb8dfed95e7da690e1a213bd267f0";//token资产ID
 
-		//创建账户
-		const prikey = "910183411298293648578c14f4d34bf8ba5ff03e28a026b3eb0a744f589b05d3";
-		const address = "AL2Eo2B1bWRSjizgRsFWoUShAYvv4NMiFq";
+		/* 创建账户 (>=v1.0.0)*/
+		const prikey = "910183411298293648578c14f4d34bf8ba5ff03e28a026b3eb0a744f589b05d3";//私钥
+		const address = "AL2Eo2B1bWRSjizgRsFWoUShAYvv4NMiFq";//地址
 		var account = new Bhp.wallet.Account(prikey);
 		console.log(account);
 
-		//私钥签名
-		const hexStr = "8000000115226a71a6a3c15ffc105ed4bc113e6186c9c9e0905feae155bd403d425362a701000254a80a4c72f6157a7af0a753fc4ac4af6b159a17634dd57fecf319feab6ff713204e0000000000008226c513e2aa717f2f32d3c5fb2bcb492acfc3dc54a80a4c72f6157a7af0a753fc4ac4af6b159a17634dd57fecf319feab6ff7139f47de11000000008226c513e2aa717f2f32d3c5fb2bcb492acfc3dc";
+		/* 私钥签名 (>=v1.0.0)*/
+		const hexStr = "8000000115226a71a6a3c15ffc105ed4bc113e6186c9c9e0905feae155bd403d425362a701000254a80a4c72f6157a7af0a753fc4ac4af6b159a17634dd57fecf319feab6ff713204e0000000000008226c513e2aa717f2f32d3c5fb2bcb492acfc3dc54a80a4c72f6157a7af0a753fc4ac4af6b159a17634dd57fecf319feab6ff7139f47de11000000008226c513e2aa717f2f32d3c5fb2bcb492acfc3dc";//交易hex
 		var signature = Bhp.wallet.sign(hexStr, prikey);
 		console.log(signature);
 
-		//构造交易
-		const input = {
-			prevHash: "6a9d19b9a960d809759c0823c19f32245b38ea18f6783c595f8567010f14b188",
-			prevIndex: 0,
-			assetId: tokenAssetId,
-			value: 0.1,
-			scriptHash: address
-		};
+		/* 构造交易 */
+		//MakeTransaction1()//(v1.0.1)
+		MakeTransaction2();
 
-		const feeinput = {
-			prevHash: "a4322976ae39c60cdf48129327cf98b9749faf4eb0e70ce3872dc974f2eee74c",
-			prevIndex: 0,
-			assetId: bhpAssetId,
-			value: 0.0002,
-			scriptHash: address
-		};
+		/* 交易签名 */
+		Sign();
 
-		var inputs = [];
-		inputs.push(input);
-		inputs.push(feeinput);
-		var config = {
-			inputs: inputs,
-			assetId: tokenAssetId,
-			toAddress: address,
-			value: 0.1,
-			changeAddress: address,
-			bhpFeeAddress: address
+
+		/* functions */
+		function MakeTransaction1() {
+			const input = {//交易输入
+				prevHash: "6a9d19b9a960d809759c0823c19f32245b38ea18f6783c595f8567010f14b188",//交易ID
+				prevIndex: 0,//UTXO索引
+				assetId: tokenAssetId,//资产ID
+				value: 0.1,//UTXO金额
+				scriptHash: address//UTXO所属地址
+			};
+
+			const bhpFeeinput = {//交易输入，此例作为BHP代币手续费输入提示，暂时未收取手续费，可忽略
+				prevHash: "a4322976ae39c60cdf48129327cf98b9749faf4eb0e70ce3872dc974f2eee74c",
+				prevIndex: 0,
+				assetId: bhpAssetId,
+				value: 0.0002,
+				scriptHash: address
+			};
+
+			var inputs = [];
+			inputs.push(input);
+			//inputs.push(bhpFeeinput);
+			var config = {
+				inputs: inputs,//交易输入
+				assetId: tokenAssetId,//转账资产ID
+				toAddress: address,//转账目标地址
+				value: 0.1,//转账金额
+				changeAddress: address,//转账找零地址
+				bhpFeeAddress: address,//转代币时收取手续费的地址，暂时未收取手续费，可忽略
+				priKeys: [prikey]//所有输入地址的私钥，用于交易签名，未传入私钥则返回未签名的交易数据
+			}
+
+			Bhp.api.makeTransaction(config)
+				.then(config => {
+					console.log("\n\n--- Response ---");
+					console.log(config);
+				})
+				.catch(config => {
+					console.log(config);
+				});
+			// 	config = Bhp.api.makeTransaction(config);
+			// console.log(config);		
 		}
 
-		config.priKeys = [prikey];
-		Bhp.api.makeTransaction(config)
-			.then(config => {
-				console.log("\n\n--- Response ---");
-				console.log(config);
-			})
-			.catch(config => {
-				console.log(config);
-			});
-			
+		function MakeTransaction2() {
+			const input = {//交易输入
+				prevHash: "6a9d19b9a960d809759c0823c19f32245b38ea18f6783c595f8567010f14b188",//交易ID
+				prevIndex: 0,//UTXO索引
+				assetId: tokenAssetId,//资产ID
+				value: 0.1,//UTXO金额
+				address: address//UTXO所属地址
+			};
+
+			const bhpFeeinput = {//交易输入，此例作为BHP代币手续费输入提示，暂时未收取手续费，可忽略
+				prevHash: "a4322976ae39c60cdf48129327cf98b9749faf4eb0e70ce3872dc974f2eee74c",
+				prevIndex: 0,
+				assetId: bhpAssetId,
+				value: 0.0002,
+				address: address
+			};
+
+			var inputs = [];
+			inputs.push(input);
+			//inputs.push(bhpFeeinput);
+			var config = {
+				inputs: inputs,//交易输入
+				assetId: tokenAssetId,//转账资产ID
+				toAddress: address,//转账目标地址
+				value: 0.1,//转账金额
+				changeAddress: address,//转账找零地址
+				bhpFeeAddress: address,//转代币时收取手续费的地址，暂时未收取手续费，可忽略
+				priKeys: [prikey]//所有输入地址的私钥，用于交易签名，未传入私钥则返回未签名的交易数据
+			}
+
+			config = Bhp.api.makeTransaction(config);
+			console.log(config);
+		}
+
+		function Sign() {
+			var txs = new Bhp.tx.ContractTransaction();
+			txs.inputs.push(new Bhp.tx.TransactionInput({
+				prevHash: "6a9d19b9a960d809759c0823c19f32245b38ea18f6783c595f8567010f14b188",
+				prevIndex: 0
+			}));
+			txs.outputs.push(new Bhp.tx.TransactionOutput({
+				assetId: bhpAssetId,
+				value: 0.1,
+				scriptHash: Bhp.wallet.getScriptHashFromAddress(address)
+			}));
+			console.log(Bhp.api.signTxByPrivateKey(txs, [prikey]));
+		}
 	</script>
 
 </body>

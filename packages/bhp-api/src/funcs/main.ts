@@ -10,7 +10,7 @@ import {
 import { fillBalance, fillClaims, fillSigningFunction, fillUrl } from "./fill";
 import { addAttributeForMintToken, addSignatureForMintToken } from "./mint";
 import { applyTxToBalance, sendTx } from "./send";
-import { signTx } from "./sign";
+import { signTx, signTxByPriKey } from "./sign";
 import {
   addAttributeIfExecutingAsSmartContract,
   addSignatureIfExecutingAsSmartContract
@@ -146,15 +146,32 @@ export function makeIntent(
   });
 }
 
+/**
+ * Function to construct a ContractTransaction.
+ * @param config Configuration object.
+ * @return Configuration object.
+ */
 export function makeTransaction(
   config: MakeTransactionCofig
-): Promise<MakeTransactionCofig> {
+): MakeTransactionCofig {
   if (!config || !config.inputs || !config.toAddress || !config.assetId || !config.value || !config.changeAddress) {
     throw new Error("makeTransaction requires inputs, toAddress, assetId, value, changeAddress");
   }
-  return makeTransactionFunction(config).catch((err: Error) => {
-    const dump = extractDump(config);
-    log.error(`makeTransaction failed with: ${err.message}. Dumping config`, dump);
-    throw err;
-  });
+  return makeTransactionFunction(config);
+}
+
+/**
+ * Function to sign a ContractTransaction.
+ * @param config Configuration object.
+ * @param priKeys private keys.
+ * @return tx hex string.
+ */
+export function signTxByPrivateKey(
+  config: tx.ContractTransaction,
+  priKeys: string[]
+): string {
+  if (!config || !priKeys || priKeys.length == 0) {
+    throw new Error("signTxByPriKey requires tx, priKeys");
+  }  
+  return signTxByPriKey(config,priKeys);
 }
