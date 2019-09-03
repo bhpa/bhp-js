@@ -1,7 +1,7 @@
 {
   "name": "@bhp/bhp-api",
   "description": "Bhp-API module: High level API for bhp-js",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/BhpAlpha/bhp-js.git"
